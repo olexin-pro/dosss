@@ -1,42 +1,209 @@
-version: '3.9'
+version: '3.7'
 services:
-  app.db:
-    image: 'postgres:15'
-    container_name: app.db
-    ports:
-      - '${FORWARD_DB_PORT:-5432}:5432'
-    environment:
-      PGPASSWORD: '${DB_PASSWORD:-secret}'
-      POSTGRES_DB: '${DB_DATABASE}'
-      POSTGRES_USER: '${DB_USERNAME}'
-      POSTGRES_PASSWORD: '${DB_PASSWORD:-secret}'
-    volumes:
-      - 'app-db:/var/lib/postgresql/data'
-      - './docker/create-testing-database.sql:/docker-entrypoint-initdb.d/10-create-testing-database.sql'
-    networks:
-      - backend
-    healthcheck:
-      test: [ "CMD", "pg_isready", "-q", "-d", "${DB_DATABASE}", "-U", "${DB_USERNAME}" ]
-      retries: 3
-      timeout: 5s
 
-  app.redis:
-    image: 'redis:alpine'
-    container_name: app.redis
-    ports:
-      - '${FORWARD_REDIS_PORT:-6379}:6379'
-    volumes:
-      - 'app-redis:/data'
-    networks:
-      - backend
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      retries: 3
-      timeout: 5s
+    traefik:
+      image: "traefik:v3.0"
+      container_name: "traefik"
+      command:
+        #- "--log.level=DEBUG"
+        - "--api.insecure=true"
+        - "--providers.docker=true"
+        - "--providers.docker.exposedbydefault=false"
+        - "--entryPoints.web.address=:80"
+      ports:
+        - "80:80"
+        - "8080:8080"
+      volumes:
+        - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      networks:
+        - reverse-proxy
+        - backend
+
+    app.fpm:
+        build:
+            context: .
+            target: fpm_server
+        image: app_dosss/fpm_server
+        container_name: app.fpm
+        expose:
+          - 9000
+        environment:
+            APP_DEBUG: "true"
+        volumes:
+            - '.:/opt/apps/app-source'
+            - ".env:/opt/apps/app-source/.env"
+        networks:
+            - backend
+
+
+    app.web:
+        build:
+            context: .
+            target: web_server
+        image: app_dosss/web_server
+        container_name: app.web
+        expose:
+          - 80
+        ports:
+          - 81:80
+        labels:
+          - "traefik.enable=true"
+          - "traefik.http.routers.webserver.rule=Host(`dosss.test`)"
+          - "traefik.http.routers.webserver.entrypoints=web"
+          - "traefik.docker.network=reverse-proxy"
+        environment:
+            FPM_HOST: "app.fpm:9000"
+        volumes:
+            - './docker/template.nginx.conf:/etc/nginx/templates/default.conf.template'
+            - './public:/opt/apps/app-source/public'
+            - ".env:/opt/apps/app-source/.env"
+        networks:
+            - backend
+            - reverse-proxy
+        depends_on:
+            - "app.fpm"
+
+
+
+    app.queue:
+        build:
+            context: .
+            target: supervisord
+        image: app_dosss/queue
+        container_name: app.queue
+        volumes:
+            - '.:/opt/apps/app-source'
+            - './docker/supervisord.conf:/etc/supervisord.conf'
+            - ".env:/opt/apps/app-source/.env"
+        networks:
+            - backend
+        deploy:
+          resources:
+            limits:
+              memory: 100M
+
+    app.cron:
+        build:
+            context: .
+            target: cron
+        image: app_dosss/cron
+        container_name: app.cron
+        volumes:
+            - '.:/opt/apps/app-source'
+            - ".env:/opt/apps/app-source/.env"
+        networks:
+            - backend
+
+
+    app.frontend:
+        build:
+            context: .
+            target: frontend
+        ports:
+            - "5173:5173"
+        command: bash -c "npm install && npm run dev"
+        image: app_dosss/frontend
+        container_name: app.frontend
+        volumes:
+            - '.:/opt/apps/app-source'
+            - '/opt/app/node_modules/'
+        networks:
+            - backend
+
+
+    app.db:
+        image: 'postgres:15'
+        container_name: app.db
+        ports:
+            - '${FORWARD_DB_PORT:-5432}:5432'
+        environment:
+            PGPASSWORD: '${DB_PASSWORD:-secret}'
+            POSTGRES_DB: '${DB_DATABASE}'
+            POSTGRES_USER: '${DB_USERNAME}'
+            POSTGRES_PASSWORD: '${DB_PASSWORD:-secret}'
+        volumes:
+            - 'app-pgsql:/var/lib/postgresql/data'
+            - './docker/create-testing-database.sql:/docker-entrypoint-initdb.d/10-create-testing-database.sql'
+        networks:
+            - backend
+        healthcheck:
+            test: ["CMD", "pg_isready", "-q", "-d", "${DB_DATABASE}", "-U", "${DB_USERNAME}"]
+            retries: 3
+            timeout: 5s
+
+
+    app.redis:
+        image: 'redis:alpine'
+        container_name: app.redis
+        ports:
+            - '${FORWARD_REDIS_PORT:-6379}:6379'
+        volumes:
+            - 'app-redis:/data'
+        networks:
+            - backend
+        healthcheck:
+            test: ["CMD", "redis-cli", "ping"]
+            retries: 3
+            timeout: 5s
+
+
+#    beanstalkd:
+#        image: 'rayyounghong/beanstalkd'
+#        container_name: beanstalkd
+#        networks:
+#            - backend
+#        ports: ['11300:11300']
+
+
+    app.bug:
+      container_name: app.bug
+      image: ghcr.io/buggregator/server:dev
+      ports:
+        - "8001:8000"
+        - "1025:1025"
+        - "9912:9912"
+        - "9913:9913"
+      networks:
+        - backend
+        - reverse-proxy
+
+#    centrifugo:
+#        container_name: centrifugo
+#        image: centrifugo/centrifugo:v5
+#        volumes:
+#            - './docker/centrifugo_config.json:/centrifugo/config.json'
+#        command: centrifugo -c config.json
+#        expose:
+#            - 8000
+#        ports:
+#            - "8000:8000"
+#        ulimits:
+#            nofile:
+#                soft: 65535
+#                hard: 65535
+#        networks:
+#            - backend
+#        deploy:
+#          resources:
+#            limits:
+#              memory: 100M
+
+#    typesense:
+#      container_name: typesense
+#      image: typesense/typesense:0.25.2
+#      restart: on-failure
+#      ports:
+#        - "8108:8108"
+#      volumes:
+#        - "./typesense:/data:rw"
+#      command: "--data-dir /data --api-key=${TYPESENSE_API_KEY} --enable-search-analytics=true --enable-cors --analytics-flush-interval=60"
+#      networks:
+#        - backend
 
 
 networks:
-  backend:
+    reverse-proxy:
+    backend:
 volumes:
-  app-db:
-  app-redis:
+    app-pgsql:
+    app-redis:

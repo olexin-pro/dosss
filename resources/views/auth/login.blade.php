@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.empty')
 
 @section('content')
     <div class="auth-page">
@@ -62,12 +62,14 @@
                 </div>
             </form>
 
+            @if (Route::has('register'))
             <p class="mt-10 text-center text-sm text-gray-500">
                 Not a member?
                 <a href="#">
                     {{__('Register')}}
                 </a>
             </p>
+            @endif
         </div>
     </div>
 

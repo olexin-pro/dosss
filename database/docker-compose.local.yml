@@ -1,0 +1,240 @@
+version: '3.7'
+services:
+
+    nginx-proxy:
+        container_name: nginx-proxy
+        image: nginxproxy/nginx-proxy
+        restart: on-failure
+        ports:
+          - "80:80"
+        volumes:
+#          - ./docker/proxy.conf:/etc/nginx/conf.d/proxy.conf
+          - /var/run/docker.sock:/tmp/docker.sock:ro
+        networks:
+          - reverse-proxy
+
+
+#    frontend:
+#      container_name: frontend
+#      image: registry.gitlab.com/olexin/bybuy-frontend/main:0.0.13
+  #      restart: on-failure
+#      expose:
+#        - 80
+#      environment:
+#        NUXT_SITE_URL: https://new.bybuy.test
+#        NUXT_API_URL: https://api.bybuy.test
+#        NUXT_API_REFERRER: https://new.bybuy.test
+#        VIRTUAL_HOST: new.bybuy.test
+#        VIRTUAL_PORT: 80
+#        NITRO_PORT: 80
+#        PORT: 80
+#      networks:
+#        - frontend
+#        - reverse-proxy
+
+    backend.fpm:
+        build:
+            context: .
+            target: fpm_server
+        image: backend/fpm_server
+        container_name: backend.fpm
+        environment:
+            APP_DEBUG: "true"
+        volumes:
+            - '.:/opt/apps/app-source'
+            - ".env.docker:/opt/apps/app-source/.env"
+            - ".env.docker.testing:/opt/apps/app-source/.env.testing"
+        networks:
+            - backend
+
+
+    backend.web:
+        build:
+            context: .
+            target: web_server
+        image: backend/web_server
+        container_name: backend.web
+        expose:
+          - 80
+        environment:
+            VIRTUAL_HOST: "api.bybuy.test,cabinet.bybuy.test,dashboard.bybuy.test,admin.bybuy.test,auth.bybuy.test"
+            VIRTUAL_PORT: 80
+            FPM_HOST: "backend.fpm:9000"
+            WS_HOST: "http://centrifugo:8000"
+        volumes:
+            - './public:/opt/apps/app-source/public'
+            - './storage:/opt/apps/app-source/storage'
+            - './docker/template.nginx.conf:/etc/nginx/templates/default.conf.template'
+        networks:
+            - backend
+            - reverse-proxy
+        depends_on:
+            - "backend.fpm"
+
+
+
+    backend.supervisor:
+        build:
+            context: .
+            target: supervisord
+        image: backend/supervisord
+        container_name: backend.supervisor
+        volumes:
+            - '.:/opt/apps/app-source'
+            - './docker/supervisord.conf:/etc/supervisord.conf'
+            - ".env.docker:/opt/apps/app-source/.env"
+            - ".env.docker.testing:/opt/apps/app-source/.env.testing"
+        networks:
+            - backend
+        deploy:
+          resources:
+            limits:
+              memory: 100M
+
+    backend.cron:
+        build:
+            context: .
+            target: cron
+        image: backend/cron
+        container_name: backend.cron
+        volumes:
+            - '.:/opt/apps/app-source'
+            - ".env.docker:/opt/apps/app-source/.env"
+            - ".env.docker.testing:/opt/apps/app-source/.env.testing"
+        networks:
+            - backend
+
+
+    backend.frontend:
+        build:
+            context: .
+            target: frontend
+        ports:
+            - "5173:5173"
+        command: bash -c "npm install && npm run dev"
+        image: backend/frontend
+        container_name: backend.frontend
+        volumes:
+            - '.:/opt/apps/app-source'
+            - '/opt/app/node_modules/'
+        networks:
+            - backend
+
+
+    pgsql:
+        image: 'postgres:15'
+        container_name: pgsql
+        ports:
+            - '${FORWARD_DB_PORT:-5432}:5432'
+        environment:
+            PGPASSWORD: '${DB_PASSWORD:-secret}'
+            POSTGRES_DB: '${DB_DATABASE}'
+            POSTGRES_USER: '${DB_USERNAME}'
+            POSTGRES_PASSWORD: '${DB_PASSWORD:-secret}'
+        volumes:
+            - 'backend-pgsql:/var/lib/postgresql/data'
+            - './docker/create-testing-database.sql:/docker-entrypoint-initdb.d/10-create-testing-database.sql'
+        networks:
+            - backend
+        healthcheck:
+            test: ["CMD", "pg_isready", "-q", "-d", "${DB_DATABASE}", "-U", "${DB_USERNAME}"]
+            retries: 3
+            timeout: 5s
+
+
+    redis:
+        image: 'redis:alpine'
+        container_name: redis
+        ports:
+            - '${FORWARD_REDIS_PORT:-6379}:6379'
+        volumes:
+            - 'backend-redis:/data'
+        networks:
+            - backend
+        healthcheck:
+            test: ["CMD", "redis-cli", "ping"]
+            retries: 3
+            timeout: 5s
+
+
+    beanstalkd:
+        image: 'rayyounghong/beanstalkd'
+        container_name: beanstalkd
+        networks:
+            - backend
+        ports: ['11300:11300']
+
+
+    buggregator:
+      container_name: buggregator
+      image: ghcr.io/buggregator/server:dev
+      ports:
+        - "8001:8000"
+        - "1025:1025"
+        - "9912:9912"
+        - "9913:9913"
+      networks:
+        - backend
+
+#    elastic:
+#        build:
+#            context: .
+#            target: elastic
+#        image: backend/elastic
+#        container_name: elastic
+#        environment:
+##            ELASTIC_PASSWORD: "${ELASTIC_PASSWORD:-secret}"
+#            "discovery.type": "single-node"
+#            "xpack.security.enabled": false
+#            "xpack.security.enrollment.enabled": false
+#        ports:
+#            - '9200:9200'
+#        deploy:
+#            resources:
+#                limits:
+#                    memory: 2G
+#        networks:
+#            - backend
+
+
+    centrifugo:
+        container_name: centrifugo
+        image: centrifugo/centrifugo:v5
+        volumes:
+            - './docker/centrifugo_config.json:/centrifugo/config.json'
+        command: centrifugo -c config.json
+        expose:
+            - 8000
+        ports:
+            - "8000:8000"
+        ulimits:
+            nofile:
+                soft: 65535
+                hard: 65535
+        networks:
+            - backend
+        deploy:
+          resources:
+            limits:
+              memory: 100M
+
+    typesense:
+      container_name: typesense
+      image: typesense/typesense:0.25.2
+      restart: on-failure
+      ports:
+        - "8108:8108"
+      volumes:
+        - "./typesense:/data:rw"
+      command: "--data-dir /data --api-key=${TYPESENSE_API_KEY} --enable-search-analytics=true --enable-cors --analytics-flush-interval=60"
+      networks:
+        - backend
+
+
+networks:
+    reverse-proxy:
+    frontend:
+    backend:
+volumes:
+    backend-pgsql:
+    backend-redis:

@@ -1,0 +1,29 @@
+{
+    "port": 8000,
+    "engine": "memory",
+    "admin": true,
+    "allowed_origins": [
+        "https://bybuy.kz",
+        "https://www.bybuy.kz",
+        "https://cabinet.bybuy.kz",
+        "https://management.bybuy.kz",
+        "https://admin.bybuy.kz",
+        "https://dashboard.bybuy.kz"
+    ],
+    "proxy_connect_endpoint": "http://backend.web/ws/connect",
+    "proxy_http_headers": [
+        "Cookie"
+    ],
+    "namespaces": [
+        {
+            "name": "personal"
+        },
+        {
+            "name": "order"
+        }
+    ],
+    "token_hmac_secret_key": "f44e9801-18f4-4793-89a5-5115d6f6ddb1",
+    "admin_password": "18f05280-8570-4c2c-86a5-05a04ad8028d",
+    "admin_secret": "e805966c-7bbb-4887-9005-4503e4cddaea",
+    "api_key": "d5ca5947-25e5-42ae-bfcd-1ca9e7c65da3"
+}

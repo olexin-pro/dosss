@@ -25,4 +25,14 @@ export default defineConfig({
             vue: 'vue/dist/vue.esm-bundler.js',
         },
     },
+    // if run in docker
+    server: {
+        host: '0.0.0.0',
+        hmr: {
+            host: 'cabinet.bybuy.test'
+        },
+        watch: {
+            usePolling: true
+        }
+    }
 });
