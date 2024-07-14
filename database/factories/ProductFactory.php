@@ -20,8 +20,12 @@ class ProductFactory extends Factory
         return [
             'category_id' => $this->getCategoryId(),
             'title' => $this->faker->realTextBetween(12, 48),
+            'meta_title' => $this->faker->realTextBetween(12, 48),
             'short_description' => $this->faker->realTextBetween(12, 48),
             'description' => $this->faker->realTextBetween(12, 130),
+            'search_keys' => $this->faker->realTextBetween(12, 130),
+            'meta_description' => $this->faker->realTextBetween(12, 130),
+            'price' => (round(mt_rand(100, 9999) / 10) ) * 10,
             'active' => true,
         ];
     }

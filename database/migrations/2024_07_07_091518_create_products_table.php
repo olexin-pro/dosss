@@ -16,10 +16,23 @@ return new class extends Migration
             $table->foreignId('category_id')
                 ->nullable()
                 ->constrained();
+
             $table->string('slug')->unique();
             $table->string('title');
+
             $table->tinyText('short_description')->nullable();
             $table->text('description')->nullable();
+
+            $table->text('search_keys')->nullable();
+            $table->string('meta_title')->nullable();
+            $table->text('meta_description')->nullable();
+
+
+            $table->string('barcode')->nullable()->unique();
+            $table->string('product_code')->nullable()->unique();
+
+            $table->double('price')->nullable();
+
             $table->jsonb('options')->nullable();
             $table->jsonb('params')->nullable();
             $table->boolean('active')->default(false);

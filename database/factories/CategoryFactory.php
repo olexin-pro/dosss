@@ -17,7 +17,7 @@ class CategoryFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => $this->faker->realTextBetween(6,12),
+            'title' => $this->faker->realTextBetween(6,12),
             'description' => $this->faker->realTextBetween(12,130),
             'parent_id' => null,
             'active' => true,
