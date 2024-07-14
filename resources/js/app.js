@@ -15,8 +15,12 @@ import { createApp } from 'vue';
 
 const app = createApp({});
 
-import ExampleComponent from './components/ExampleComponent.vue';
-app.component('example-component', ExampleComponent);
+// import ExampleComponent from './components/ExampleComponent.vue';
+import Dropdown from './components/Dropdown.vue';
+import PopupCategories from './components/PopupCategories.vue';
+// app.component('example-component', ExampleComponent);
+app.component('dropdown', Dropdown);
+app.component('popup-categories', PopupCategories);
 
 /**
  * The following block of code may be used to automatically register your

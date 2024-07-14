@@ -1,6 +1,6 @@
 <div>
     <nav class="container mx-auto my-8">
-        <div class="bg-gray-100 p-8 rounded-xl flex justify-between items-center gap-4">
+        <div class="bg-gray-50 p-8 rounded-xl flex justify-between items-center gap-4">
             <a href="{{route('app.home')}}" class="text-gray-400 hover:text-gray-600 font-semibold text-sm">
                 {{config('app.name')}} &copy; {{date('Y')}}
             </a>

@@ -3,3 +3,8 @@
 @tailwind utilities;
 
 @import "auth";
+
+
+*[v-cloak]{
+    display: none;
+}

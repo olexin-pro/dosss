@@ -23,7 +23,9 @@
                             alt="image">
                     </div>
                     <div>
-                        <p>{{$product->category->title}}</p>
+                        @if(filled($product->category))
+                            <p>{{$product->category->title}}</p>
+                        @endif
                         <p>{{$product->description}}</p>
                         <div class="flex gap-4 items-center my-8">
                             <p class="text-2xl font-bold">
