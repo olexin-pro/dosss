@@ -3,22 +3,14 @@
         fsddfsdfg
     </div>
 </div>
-<nav class="sticky top-0 bg-white py-6">
+<nav class="sticky top-0 bg-white py-6 z-10">
     <div class="container mx-auto flex justify-between gap-4 items-center ">
         <a href="{{route('app.home')}}" class="text-xl text-gray-800 font-bold">
             <img src="{{url('/assets/images/logo.svg')}}" alt="{{config('app.name')}}">
         </a>
         <popup-categories>
             <div class="grid grid-cols-1" v-cloak>
-                @foreach($categories as $category)
-                    <a href="{{route('app.shop.category.show', $category)}}"
-                       class="bg-transparent hover:bg-gray-50 px-4 py-3 flex flex-row justify-between items-center">
-                        <span>{{$category->title}}</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 text-gray-300">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-                        </svg>
-                    </a>
-                @endforeach
+                <x-category.menu :popup="true"/>
             </div>
         </popup-categories>
         <div class="grow">

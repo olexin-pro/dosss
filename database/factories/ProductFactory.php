@@ -21,7 +21,6 @@ class ProductFactory extends Factory
             'category_id' => $this->getCategoryId(),
             'title' => $this->faker->realTextBetween(12, 48),
             'meta_title' => $this->faker->realTextBetween(12, 48),
-            'short_description' => $this->faker->realTextBetween(12, 48),
             'description' => $this->faker->realTextBetween(12, 130),
             'search_keys' => $this->faker->realTextBetween(12, 130),
             'meta_description' => $this->faker->realTextBetween(12, 130),

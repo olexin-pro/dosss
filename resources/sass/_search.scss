@@ -1,0 +1,59 @@
+//@import "instantsearch.css/themes/satellite.css";
+@import "instantsearch.css/themes/algolia.css";
+
+//.ais-Hits{
+//    @apply absolute;
+//
+//    .ais-Hits-list{
+//        @apply  bg-white shadow-xl p-4 pl-0;
+//
+//        .ais-Hits-item{
+//            box-shadow: none;
+//            @apply bg-white transition-all duration-200;
+//
+//            &:hover{
+//                @apply shadow-lg;
+//            }
+//        }
+//    }
+//}
+
+.ais-Hits-item{
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.ais-RefinementList-list{
+    @apply flex flex-col gap-2;
+
+    .ais-RefinementList-item{
+
+        .ais-RefinementList-label{
+            @apply flex flex-row justify-between bg-gray-100 px-4 py-2 rounded-lg;
+
+            .ais-RefinementList-checkbox{
+                @apply hidden;
+            }
+            .ais-RefinementList-labelText{
+                @apply text-sm;
+            }
+            .ais-RefinementList-count{}
+        }
+
+        &.ais-RefinementList-item--selected{
+            .ais-RefinementList-label{
+                @apply bg-gray-200;
+
+                .ais-RefinementList-labelText{
+                    @apply text-gray-800 font-semibold;
+                }
+
+                .ais-RefinementList-count{
+                    @apply bg-sky-400 text-sky-50;
+                }
+            }
+        }
+    }
+}
+

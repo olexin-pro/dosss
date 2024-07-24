@@ -15,12 +15,16 @@ import { createApp } from 'vue';
 
 const app = createApp({});
 
+import InstantSearch from "vue-instantsearch/vue3/es";
 // import ExampleComponent from './components/ExampleComponent.vue';
-import Dropdown from './components/Dropdown.vue';
-import PopupCategories from './components/PopupCategories.vue';
+// import Dropdown from './components/Dropdown.vue';
+// import PopupCategories from './components/PopupCategories.vue';
+// import Search from './components/Search.vue';
+
 // app.component('example-component', ExampleComponent);
-app.component('dropdown', Dropdown);
-app.component('popup-categories', PopupCategories);
+// app.component('search', Search);
+// app.component('dropdown', Dropdown);
+// app.component('popup-categories', PopupCategories);
 
 /**
  * The following block of code may be used to automatically register your
@@ -30,14 +34,15 @@ app.component('popup-categories', PopupCategories);
  * Eg. ./components/ExampleComponent.vue -> <example-component></example-component>
  */
 
-// Object.entries(import.meta.glob('./**/*.vue', { eager: true })).forEach(([path, definition]) => {
-//     app.component(path.split('/').pop().replace(/\.\w+$/, ''), definition.default);
-// });
+Object.entries(import.meta.glob('./**/*.vue', { eager: true })).forEach(([path, definition]) => {
+    app.component(path.split('/').pop().replace(/\.\w+$/, ''), definition.default);
+});
 
 /**
  * Finally, we will attach the application instance to a HTML element with
  * an "id" attribute of "app". This element is included with the "auth"
  * scaffolding. Otherwise, you will need to add an element yourself.
  */
+app.use(InstantSearch);
 
 app.mount('#app');

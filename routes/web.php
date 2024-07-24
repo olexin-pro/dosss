@@ -16,3 +16,6 @@ Route::get('/catalog/category/{category:slug}', [App\Http\Controllers\Shop\Produ
 
 Route::get('/search', [App\Http\Controllers\Shop\ProductController::class, 'search'])
     ->name('app.shop.search');
+
+Route::get('/filter', [App\Http\Controllers\Shop\ProductController::class, 'filter'])
+    ->name('app.shop.filter');

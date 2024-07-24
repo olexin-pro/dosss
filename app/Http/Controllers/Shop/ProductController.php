@@ -25,6 +25,15 @@ class ProductController extends Controller
      *
      * @return \Illuminate\Contracts\Support\Renderable
      */
+    public function filter()
+    {
+        return view('shop.page.filter');
+    }
+    /**
+     * Show the application dashboard.
+     *
+     * @return \Illuminate\Contracts\Support\Renderable
+     */
     public function search(Request $request)
     {
         $products = Product::query()

@@ -20,7 +20,6 @@ return new class extends Migration
             $table->string('slug')->unique();
             $table->string('title');
 
-            $table->tinyText('short_description')->nullable();
             $table->text('description')->nullable();
 
             $table->text('search_keys')->nullable();
