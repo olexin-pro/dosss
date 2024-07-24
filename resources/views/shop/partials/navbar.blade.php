@@ -6,7 +6,7 @@
 <nav class="sticky top-0 bg-white py-6">
     <div class="container mx-auto flex justify-between gap-4 items-center ">
         <a href="{{route('app.home')}}" class="text-xl text-gray-800 font-bold">
-            {{config('app.name')}}
+            <img src="{{url('/assets/images/logo.svg')}}" alt="{{config('app.name')}}">
         </a>
         <popup-categories>
             <div class="grid grid-cols-1" v-cloak>

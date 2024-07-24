@@ -15,6 +15,9 @@
 
     <!-- Scripts -->
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
+
+    <!-- favicon -->
+    @include('partials.favicon')
 </head>
 <body>
     <div id="app">
