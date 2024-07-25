@@ -42,7 +42,7 @@ const typesenseInstantsearchAdapter = new TypesenseInstantSearchAdapter({
             index-name="products"
         >
             <div class="left-panel">
-                <ais-clear-refinements />
+<!--                <ais-clear-refinements />-->
                 <ais-refinement-list
                     attribute="category"
                     searchable-placeholder="Поиск категорий..."
